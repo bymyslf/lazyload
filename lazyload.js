@@ -57,7 +57,29 @@ LazyLoad = (function (doc) {
   queue = {css: [], js: []},
 
   // Reference to the browser's list of stylesheets.
-  styleSheets = doc.styleSheets;
+  styleSheets = doc.styleSheets,
+
+  // Cached requests
+  cached = (function (doc, csSheets) {
+    var cache = {},
+        jScripts = doc.getElementsByTagName("script");
+
+        for (var i = 0, len = jScripts.length, current = null; i < len; ++i) {
+          current = jScripts[i];
+          if (current && current.src) {
+            cache[current.src] = 3;
+          }
+        }
+
+        for (var i = 0, len = csSheets.length, current = null; i < len; ++i) {
+          current = csSheets[i];
+          if (current && current.href) {
+            cache[current.href] = 3;
+          } 
+        }
+
+        return cache;
+  })(doc, styleSheets);
 
   // -- Private Methods --------------------------------------------------------
 
@@ -100,9 +122,9 @@ LazyLoad = (function (doc) {
       callback = p.callback;
       urls     = p.urls;
 
-      urls.shift();
+      cached[urls.shift()] = 3;
       pollCount = 0;
-
+      
       // If this is the last of the pending URLs, execute the callback and
       // start the next request in the queue (if any).
       if (!urls.length) {
@@ -172,6 +194,28 @@ LazyLoad = (function (doc) {
       // array and create a copy of it so modifications won't be made to the
       // original.
       urls = typeof urls === 'string' ? [urls] : urls.concat();
+
+      // Remove cached urls
+      urls = (function () {
+        var filtered = [];
+        for (var i = 0, len = urls.length, url; i < len; ++i) {
+          url = urls[i];
+          
+          if (!cached[url]) {
+            cached[url] = 1;
+            filtered.push(url); 
+          }
+        }  
+
+        return filtered;
+      })();
+       
+
+      // Fire callback if no more urls
+      if (urls.length == 0) {
+        callback && callback.call(context, obj);
+        return;
+      }
 
       // Create a request object for each URL. If multiple URLs are specified,
       // the callback will only be executed after all URLs have been loaded.
@@ -259,6 +303,7 @@ LazyLoad = (function (doc) {
 
     for (i = 0, len = nodes.length; i < len; ++i) {
       head.appendChild(nodes[i]);
+      cached[url] = 2;
     }
   }
 
