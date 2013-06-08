@@ -210,7 +210,6 @@ LazyLoad = (function (doc) {
         return filtered;
       })();
        
-
       // Fire callback if no more urls
       if (urls.length == 0) {
         callback && callback.call(context, obj);
