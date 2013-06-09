@@ -64,14 +64,14 @@ LazyLoad = (function (doc) {
     var cache = {},
         jScripts = doc.getElementsByTagName("script");
 
-        for (var i = 0, len = jScripts.length, current = null; i < len; ++i) {
+        for (var i = 0, len = jScripts.length, current; i < len; ++i) {
           current = jScripts[i];
           if (current && current.src) {
             cache[current.src] = 3;
           }
         }
 
-        for (var i = 0, len = csSheets.length, current = null; i < len; ++i) {
+        for (var i = 0, len = csSheets.length, current; i < len; ++i) {
           current = csSheets[i];
           if (current && current.href) {
             cache[current.href] = 3;
