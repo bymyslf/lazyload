@@ -136,6 +136,29 @@ LazyLoad = (function (doc) {
   }
 
   /**
+  Remove cached resources URLs or append to cache and mark as queued (status = 1).
+
+  @method removeCached
+  @param {Array} Current request resources
+  @return {Array}
+  @private
+  */
+  function removeCached(urls) {
+    var filtered = [];
+
+    for (var i = 0, len = urls.length, url; i < len; ++i) {
+      url = urls[i];
+      
+      if (!cached[url]) {
+        cached[url] = 1;
+        filtered.push(url); 
+      }
+    }  
+
+    return filtered;
+  }
+
+  /**
   Populates the <code>env</code> variable with user agent and feature test
   information.
 
@@ -196,19 +219,7 @@ LazyLoad = (function (doc) {
       urls = typeof urls === 'string' ? [urls] : urls.concat();
 
       // Remove cached urls
-      urls = (function () {
-        var filtered = [];
-        for (var i = 0, len = urls.length, url; i < len; ++i) {
-          url = urls[i];
-          
-          if (!cached[url]) {
-            cached[url] = 1;
-            filtered.push(url); 
-          }
-        }  
-
-        return filtered;
-      })();
+      urls = removeCached(urls); 
        
       // Fire callback if no more urls
       if (urls.length == 0) {
